@@ -1,21 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export const Timer: React.FC = () => {
   const [timer, setTimer] = useState(0);
   const [timerID, setTimerID] = useState<NodeJS.Timer | null>(null);
-
-  // For debugging purposes
-  useEffect(() => {
-    console.log("-- Timer timer -", timer);
-  }, [timer]);
-
-  const onSetTimeout = (timerId: NodeJS.Timer, timer: number) => {
-    setTimeout(() => {
-      clearInterval(timerId);
-      setTimerID(null);
-      resetTimerInput();
-    }, timer * 1000);
-  };
+  const [timerInputDisabled, setTimerInputDisabled] = useState<boolean>(false);
 
   const resetTimerInput = () => {
     (document.getElementById("timer") as HTMLInputElement).value = "";
@@ -27,10 +15,15 @@ export const Timer: React.FC = () => {
         setTimer((timer) => timer - 1);
       }, 1000);
 
-      console.log("-- Timer timer", timer);
-      onSetTimeout(timerid, timer);
+      setTimeout(() => {
+        clearInterval(timerid);
+        setTimerID(null);
+        resetTimerInput();
+        setTimerInputDisabled(false);
+      }, timer * 1000);
 
       setTimerID(timerid);
+      setTimerInputDisabled(true);
     }
   };
 
@@ -49,6 +42,7 @@ export const Timer: React.FC = () => {
     setTimer(0);
     resetTimerInput();
     setTimerID(null);
+    setTimerInputDisabled(false);
   };
 
   const onTimerChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -56,10 +50,6 @@ export const Timer: React.FC = () => {
 
     const timer = +e.currentTarget.value;
     setTimer(timer);
-
-    if (timerID !== null) {
-      onSetTimeout(timerID, timer);
-    }
   };
 
   const format = (timer: number) => {
@@ -70,7 +60,14 @@ export const Timer: React.FC = () => {
     <div>
       {format(timer)}
       <div>
-        <input id="timer" type="text" onChange={onTimerChange} />
+        <div>
+          <input
+            id="timer"
+            type="text"
+            onChange={onTimerChange}
+            disabled={timerInputDisabled ? true : false}
+          />
+        </div>
         <button onClick={start}>Start</button>
         <button onClick={stop}>Stop</button>
         <button onClick={reset}>Reset </button>
